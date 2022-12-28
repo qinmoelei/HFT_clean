@@ -78,7 +78,10 @@ def split_noramlize(data: pd.DataFrame, path: str, portion=[0.6, 0.4]):
 
     return train_data, test_data
 
-def split_noramlize_preserve_size(data: pd.DataFrame, path: str, portion=[0.6, 0.4]):
+
+def split_noramlize_preserve_size(data: pd.DataFrame,
+                                  path: str,
+                                  portion=[0.6, 0.4]):
     feature = [
         'bid1_price', 'bid1_size', 'bid2_price', 'bid2_size', 'bid3_price',
         'bid3_size', 'bid4_price', 'bid4_size', 'bid5_price', 'bid5_size',
@@ -99,10 +102,28 @@ def split_noramlize_preserve_size(data: pd.DataFrame, path: str, portion=[0.6, 0
         'cntp_60', 'cntn_10', 'cntn_30', 'cntn_60', 'cntd_10', 'cntd_30',
         'cntd_60'
     ]
-    preserved_feature=['bid1_price', 'bid1_size', 'bid2_price', 'bid2_size', 'bid3_price',
-        'bid3_size', 'bid4_price', 'bid4_size', 'bid5_price', 'bid5_size',
-        'ask1_price', 'ask1_size', 'ask2_price', 'ask2_size', 'ask3_price',
-        'ask3_size', 'ask4_price', 'ask4_size', 'ask5_price', 'ask5_size',]
+    preserved_feature = [
+        'bid1_price',
+        'bid1_size',
+        'bid2_price',
+        'bid2_size',
+        'bid3_price',
+        'bid3_size',
+        'bid4_price',
+        'bid4_size',
+        'bid5_price',
+        'bid5_size',
+        'ask1_price',
+        'ask1_size',
+        'ask2_price',
+        'ask2_size',
+        'ask3_price',
+        'ask3_size',
+        'ask4_price',
+        'ask4_size',
+        'ask5_price',
+        'ask5_size',
+    ]
     if not os.path.exists(path):
         os.makedirs(path)
     data = data[feature]
@@ -114,8 +135,6 @@ def split_noramlize_preserve_size(data: pd.DataFrame, path: str, portion=[0.6, 0
     test_data = data.iloc[train_len + 1:train_len + test_len]
     test_data.index = range(len(test_data))
 
-
-
     mean = train_data.mean()
     std = train_data.std()
     normalized_train = (train_data - mean) / std
@@ -126,6 +145,8 @@ def split_noramlize_preserve_size(data: pd.DataFrame, path: str, portion=[0.6, 0
     normalized_test.to_csv(os.path.join(path, "normalized_test.csv"))
 
     return train_data, test_data
+
+
 def create_bf_orderbook(df: pd.DataFrame):
 
     # ================================================= Basic Features ============================================= #
@@ -358,26 +379,13 @@ def create_feature(df: pd.DataFrame):
     return df
 
 
-def create_new_feature(df: pd.DataFrame):
-    window = [10, 30, 60]
-    for w in window:
-        df['rsv_{}'.format(w)] = (df['close'] - df['low'].rolling(w).min()) / (
-            (df['high'].rolling(w).max() - df['low'].rolling(w).min()) + 1e-12)
-    df = df.iloc[max(window):]
-    df.index = range(len(df))
-    return df
-
-
 if __name__ == "__main__":
-    order_book = pd.read_csv("data/original_data/clean_order_book.csv",
-                             index_col=0)
-    trades = pd.read_csv("data/original_data/BTC-USDT.csv", index_col=0)
+    order_book = pd.read_csv("data/second_data/order_book.csv", index_col=0)
+    trades = pd.read_csv("data/second_data/BTC-USDT.csv", index_col=0)
     order_book = create_bf_orderbook(order_book)
     df_all = concat_df(order_book, trades)
-    df_all.to_csv("data/original_data/concat.csv")
-    df = pd.read_csv("data/settle_data/all.csv", index_col=0)
-    # df = df.iloc[0:1000]
-    df = create_new_feature(df)
-    # df.to_csv("data/settle_data/all.csv")
-    # df = create_feature(df)
-    train, test = split_noramlize_preserve_size(df, path="data/settle_data_for_env1")
+    df_all = clean_data(df_all)
+    df_all = create_feature(df_all)
+    df_all.to_csv("data/second_data/df_all.csv")
+    train, test = split_noramlize_preserve_size(
+        df_all, path="data/settle_data_for_env1")

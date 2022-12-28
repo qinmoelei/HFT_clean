@@ -7,8 +7,25 @@ import time
 from tqdm import tqdm
 
 
-def select_time(df):
+def compress_order_book(df: pd.DataFrame):
+    df = df.sort_values(by="timestamp")
+    # we only need to take the snap shot of the order book at each second and that's it
+    df.timestamp = (df.timestamp / 1000).astype(int)
+    feature_name = df.columns
+    df_refined_list = []
+    for timestamp in tqdm(df.timestamp.unique()):
+        single_second_information = df[df.timestamp ==
+                                       timestamp].iloc[0].values
+        df_refined_list.append(single_second_information)
+    df_refined_list = np.array(df_refined_list)
+    df = pd.DataFrame(df_refined_list, columns=feature_name)
+    df.index = range(len(df))
+    return df
+
+
+def select_time(df: pd.DataFrame):
     # we need to compress all the trade information in this 1 second and form a OHLCV information
+    df = df.sort_values(by="timestamp")
     df.timestamp = (df.timestamp / 1000).astype(int)
     df = df[df.timestamp >= 1659283200]
     df = df[df.timestamp <= 1661961599]
@@ -79,14 +96,12 @@ def compress_trade_information(df, cpu_num, i):
 
 
 if __name__ == "__main__":
-    trades = pd.read_csv("data/processed_data/trade/BTC-USDT.csv")
-    trades = select_time(trades)
-    cpu_number = cpu_count()
-    print("CPU内核数:{}".format(cpu_count()))
-    print('当前母进程: {}'.format(os.getpid()))
-    start = time.time()
-    p = Pool(cpu_number)
-    for i in range(cpu_number):
-        p.apply_async(compress_trade_information, args=(i, ))
-    p.close()
-    p.join()
+    order_book = pd.read_csv("data/processed_data/order_book.csv")
+    trade = pd.read_csv("data/processed_data/BTC-USDT.csv")
+    order_book_compressed = compress_order_book(order_book)
+    trade_compressed = compress_trade_information(trade)
+    data_path = "data/second_data"
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
+    order_book_compressed.to_csv(os.path.join(data_path, "order_book.csv"))
+    trade_compressed.to_csv(os.path.join(data_path, "BTC-USDT.csv"))
