@@ -86,6 +86,7 @@ def compress_trade_information(df):
 
 
 if __name__ == "__main__":
+    # the original file should be stored under data/processed_data folder
     order_book = pd.read_csv("data/processed_data/order_book.csv",index_col=0)
     trade = pd.read_csv("data/processed_data/BTC-USDT.csv")
     order_book_compressed = compress_order_book(order_book)
