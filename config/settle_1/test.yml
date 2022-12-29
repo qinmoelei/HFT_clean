@@ -1,4 +1,4 @@
-df_path: data/settle_data_1/normalized_test.csv
+df_path: data/settle_data_for_env1/normalized_test.csv
 tech_indicator_list:
 - imblance_volume_oe
 - sell_spread_oe
