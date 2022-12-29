@@ -1,7 +1,6 @@
 # we are using multi process
 import pandas as pd
 import numpy as np
-from multiprocessing import Pool, cpu_count
 import os
 import time
 from tqdm import tqdm
@@ -23,16 +22,8 @@ def compress_order_book(df: pd.DataFrame):
     return df
 
 
-def select_time(df: pd.DataFrame):
-    # we need to compress all the trade information in this 1 second and form a OHLCV information
-    df = df.sort_values(by="timestamp")
-    df.timestamp = (df.timestamp / 1000).astype(int)
-    df = df[df.timestamp >= 1659283200]
-    df = df[df.timestamp <= 1661961599]
-    return df
 
-
-def compress_trade_information(df, cpu_num, i):
+def compress_trade_information(df):
     df_refined_list = []
     feature_name = [
         "timestamp",
@@ -48,7 +39,6 @@ def compress_trade_information(df, cpu_num, i):
         "sell_value",
         "sell_price",
     ]
-    df = df.iloc[len(df) / cpu_num * (i - 1):len(df) / cpu_num * (i)]
     for timestamp in tqdm(df.timestamp.unique()):
         open = df[df.timestamp == timestamp].iloc[0].px
         close = df[df.timestamp == timestamp].iloc[-1].px
@@ -96,7 +86,7 @@ def compress_trade_information(df, cpu_num, i):
 
 
 if __name__ == "__main__":
-    order_book = pd.read_csv("data/processed_data/order_book.csv")
+    order_book = pd.read_csv("data/processed_data/order_book.csv",index_col=0)
     trade = pd.read_csv("data/processed_data/BTC-USDT.csv")
     order_book_compressed = compress_order_book(order_book)
     trade_compressed = compress_trade_information(trade)

@@ -297,8 +297,8 @@ class DQN(object):
                    best_model_path + "best_model.pkl")
 
     def test(self):
-        self.eval_net.load_state_dict(
-            torch.load(self.model_path + "/best_model/" + "best_model.pkl"))
+        # self.eval_net.load_state_dict(
+        #     torch.load(self.model_path + "/best_model/" + "best_model.pkl"))
         s, _ = self.test_ev_instance.reset()
         done = False
         action_list = []
@@ -329,5 +329,5 @@ class DQN(object):
 if __name__ == "__main__":
     args = parser.parse_args()
     agent = DQN(args)
-    # agent.train_with_valid()
+    agent.train_with_valid()
     agent.test()
