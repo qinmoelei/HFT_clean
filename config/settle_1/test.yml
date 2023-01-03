@@ -62,7 +62,5 @@ tech_indicator_list:
 - cntp_60
 - bid2_size_n
 - kup
-- bid1_size
-- ask1_size
 - std_30
 - ask2_size_n
